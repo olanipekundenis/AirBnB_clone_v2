@@ -1,61 +1,66 @@
 #!/usr/bin/python3
-"""file_storage.py module"""
-import os
+"""This module to manages the file storage for the AirBnB_clone_v2"""
 import json
 
 
-class FileStorage():
-    """serializes and deserializes to JSON"""
-
-    __file_path = "file.json"
+class FileStorage:
+    """This class manages storage of models in JSON format"""
+    __file_path = 'file.json'
     __objects = {}
 
-    def all(self):
-        """returns the dictionary as __object"""
-
+    def all(self, cls=None):
+        """Method returns a dictionary of models in storage"""
+        filtered_by_class = {}
+        if cls:
+            for key, value in FileStorage.__objects.items():
+                if value.__class__ == cls:
+                    filtered_by_class[key] = value
+            return filtered_by_class
         return FileStorage.__objects
 
     def new(self, obj):
-        """format the key as object id"""
-
-        key = "{}.{}".format(type(obj).__name__, obj.id)
-        FileStorage.__objects[key] = obj
+        """Method adds new object to storage dictionary"""
+        self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
 
     def save(self):
-
-        """serializes __objects to JSON file"""
+        """Method saves storage dictionary to file"""
         with open(FileStorage.__file_path, 'w') as f:
-            json.dump(
-                {k: v.to_dict() for k, v in FileStorage.__objects.items()}, f)
+            temp = {}
+            temp.update(FileStorage.__objects)
+            for key, val in temp.items():
+                temp[key] = val.to_dict()
+            json.dump(temp, f)
 
     def reload(self):
-        """deserializes JSON file to __objects if JSON exits"""
+        """Method loads storage dictionary from file"""
         from models.base_model import BaseModel
         from models.user import User
         from models.place import Place
-        from models.city import City
         from models.state import State
-        from models.review import Review
+        from models.city import City
         from models.amenity import Amenity
+        from models.review import Review
 
-        current_classes = {'BaseModel': BaseModel, 'User': User,
-                           'Amenity': Amenity, 'City': City, 'State': State,
-                           'Place': Place, 'Review': Review}
+        classes = {
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
+        try:
+            temp = {}
+            with open(FileStorage.__file_path, 'r') as f:
+                temp = json.load(f)
+                for key, val in temp.items():
+                    self.all()[key] = classes[val['__class__']](**val)
+        except FileNotFoundError:
+            pass
 
-        if not os.path.exists(FileStorage.__file_path):
-            return
+    def delete(self, obj=None):
+        """Method delete obj from __objects if it is inside"""
+        if obj:
+            key = '{}.{}'.format(type(obj).__name__, obj.id)
+            del FileStorage.__objects[key]
 
-        with open(FileStorage.__file_path, 'r') as f:
-            deserialized_obj = None
-
-            try:
-                deserialized_obj = json.load(f)
-            except json.JSONDecodeError:
-                pass
-
-            if deserialized_obj is None:
-                return
-
-            FileStorage.__objects = {
-                k: current_classes[k.split('.')[0]](**v)
-                for k, v in deserialized_obj.items()}
+    def close(self):
+        """Mehod deserialize JSON file to objects before leaving"""
+        self.reload()

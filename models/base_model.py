@@ -2,7 +2,7 @@
 """BaseModel module"""
 import uuid
 from datetime import datetime
-from models import storage
+import models
 from sqlalchemy import Column, Integer, String, DateTime, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -10,9 +10,9 @@ Base = declarative_base()
 
 class BaseModel:
     """BaseModel class"""
-    id = column(string(60), nullable=False, unique=True, primary_key=True)
-    created_at = column(DateTime, nullable=False, default=datetime.utcnow())
-    updated_at = column(DateTime, nullable=False, default=datetime.utcnow())
+    id = Column(String(60), nullable=False, unique=True, primary_key=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
 
     def __init__(self, *args, **kwargs):
         """Initialization of model"""
@@ -40,8 +40,8 @@ class BaseModel:
     def save(self):
         """update the public instance attribute"""
         self.updated_at = datetime.now()
-        storage.new(self)
-        storage.save()
+        models.storage.new(self)
+        models.storage.save()
 
     def to_dict(self):
         """Serialize object to JSON"""
@@ -55,4 +55,4 @@ class BaseModel:
 
     def delete(self):
         """delete the current instance from the storage"""
-        storage.delete(self)
+        models.storage.delete(self)

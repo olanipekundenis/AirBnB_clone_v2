@@ -1,8 +1,11 @@
 #!/usr/bin/python3
 """Defines the State class."""
-from models.base_model import BaseModel
-from models import storage
+from models.base_model import BaseModel, Base
+import models
 from models.city import City
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+from os import environ
 
 class State(BaseModel, Base):
     """Represent the Airbnb state.
@@ -12,7 +15,7 @@ class State(BaseModel, Base):
     """
     __tablename__ = "states"
 
-    name = column(string(128), nullable=False)
+    name = Column(String(128), nullable=False)
 
     if environ.get('HBNB_TYPE_STORAGE') == "db":
         cities = relationship("City",
@@ -24,7 +27,7 @@ class State(BaseModel, Base):
             """Getter method for cities"""
 
             # return list of City objs in __objects
-            cities_dict = storage.all(City)
+            cities_dict = models.storage.all(City)
             cities_list = []
 
             # copy values from dict to list

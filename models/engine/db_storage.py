@@ -5,6 +5,7 @@ from models.base_model import Base
 from models.user import User
 from models.state import State
 from models.city import City
+from models.place import Place
 
 from sqlalchemy import (create_engine)
 from sqlalchemy.orm import scoped_session
@@ -37,7 +38,7 @@ class DBStorage:
         
         dct = {}
         if not cls:
-            tables = [User, State, City]
+            tables = [User, State, City, Place]
             for table in tables:
                 query = self.__session.query(table).all()
 
